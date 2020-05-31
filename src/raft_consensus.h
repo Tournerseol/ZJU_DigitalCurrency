@@ -26,6 +26,9 @@ public:
     };
     // ------------共有功能------------
 
+    // 返回节点当前的身份，0代表Follower这样以此类推
+    int ReturnIdentity();
+
     // ------------follower功能------------
     //（在所有特有功能执行前，可以先验证一下身份判断是否有操作
     // 权限）
@@ -39,7 +42,7 @@ public:
 
     // ------------candidate功能------------
 
-    // 向其他节点发送投票请求
+    // 向其他节点发送投票请求（记得在最后更新timeout！）
     void SendVoteRequest();
 
     // 收到大多数投票时（是否竞选成功由投票助手告知），转变身
@@ -48,9 +51,18 @@ public:
 
     // ------------leader功能------------
 
+    // 接收客户端发来的交易信息变动，并
+    void ReceiveClientChange();
+
 private:
     // 记录任期号
     int term_;
+    // 定义选举超时时间，初始化时生成一个100-300ms随机时间
+    int election_timeout_;
+    // 定义心跳超时时间，仅在Leader身份时使用
+    int heartbeat_timeout_;
+    // 记录当前Leader的编号
+    int current_leader;
     // 判断节点是否超时
     bool IsTimeOut();
 };
