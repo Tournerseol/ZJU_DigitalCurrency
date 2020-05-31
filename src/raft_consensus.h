@@ -1,5 +1,7 @@
 #include <iostream>
+#include <fstream>
 #include <ctime>
+#include <dirent.h>
 #include "election.h"
 using namespace std;
 
@@ -53,5 +55,34 @@ private:
     bool IsTimeOut();
 };
 
+// 这个类是用来作为日志的，目前有一个写日志的函数，参考的是
+// https://www.cnblogs.com/zhhh/p/9470255.html
+// 可能后续还需要添加一些别的功能。初步的设想是在创建一个服务器
+// 节点的同时创建一个Log类的实例对象
+class Log
+{
+public:
+    static void Write(std::string log)
+    {
+        try
+        {
+            std::ofstream ofs;
+            time_t t = time(0);
+            char tmp[64];
+            strftime(tmp, sizeof(tmp), "[%Y-%m-%d %X]", localtime(&t));
+            // 具体打开什么文件之后还得再改
+            ofs.open("D:\\PipeLog.log", std::ofstream::app);
+
+            ofs << tmp << " - ";
+            ofs.write(log.c_str(), log.size());
+            ofs << std::endl;
+            ofs.close();
+        }
+        catch(...)
+        {
+
+        }
+    }
+};
 
 #endif
