@@ -36,9 +36,16 @@ public:
     // 当节点超时，或没有收到心跳包时，转变身份为candidate
     void TransToCandidate();
 
-    // 接收candidate发来的投票请求并决定赞成还是反对
+    // 接收candidate发来的投票请求并决定赞成还是反对，若赞成
+    // 则要更新election timeout
     // 投票的结果由投票助手记录
     void RespondRequest();
+
+    // 接收leader发来的心跳包，接收到后更新election timeout
+    void ReceiveAppenEntries();
+
+    // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
+    void ReplicateLog();
 
     // ------------candidate功能------------
 
@@ -51,11 +58,17 @@ public:
 
     // ------------leader功能------------
 
-    // 接收客户端发来的交易信息变动，并
+    // 接收客户端发来的交易信息变动，并写入leader的日志
     void ReceiveClientChange();
 
+    // 向follower发送心跳包
+    void SendAppendEntries();
+
+    // 当大多数节点收到变动信息后，leader反馈给客户端
+    void CommitEntry();
+
 private:
-    // 记录任期号
+    // 记录当前leader的任期号
     int term_;
     // 定义选举超时时间，初始化时生成一个100-300ms随机时间
     int election_timeout_;
