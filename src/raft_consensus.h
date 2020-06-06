@@ -34,18 +34,18 @@ public:
     // 权限）
 
     // 当节点超时，或没有收到心跳包时，转变身份为candidate
-    void TransToCandidate();
+    int TransToCandidate();
 
     // 接收candidate发来的投票请求并决定赞成还是反对，若赞成
     // 则要更新election timeout
     // 投票的结果由投票助手记录
-    void RespondRequest();
+    int RespondRequest(int identify,int candidate);
 
     // 接收leader发来的心跳包，接收到后更新election timeout
-    void ReceiveAppenEntries();
+    int ReceiveAppenEntries(ServerNode &L);
 
     // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
-    void ReplicateLog();
+    void ReplicateLog(ServerNode &L);
 
     // ------------candidate功能------------
 
