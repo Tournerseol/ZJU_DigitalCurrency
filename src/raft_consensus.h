@@ -24,12 +24,12 @@ public:
         CANDIDATE,
         LEADER
     };
-    // ------------共有功能------------
+    // ---------------共有功能---------------
 
     // 返回节点当前的身份，0代表Follower这样以此类推
     int ReturnIdentity();
 
-    // ------------follower功能------------
+    // ---------------follower功能---------------
     //（在所有特有功能执行前，可以先验证一下身份判断是否有操作
     // 权限）
 
@@ -47,7 +47,7 @@ public:
     // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
     void ReplicateLog(ServerNode &L);
 
-    // ------------candidate功能------------
+    // ---------------candidate功能---------------
 
     // 向其他节点发送投票请求（记得在最后更新timeout！）
     void SendVoteRequest();
@@ -56,16 +56,16 @@ public:
     // 份为leader
     void TransToLeader();
 
-    // ------------leader功能------------
+    // ---------------leader功能---------------
 
     // 接收客户端发来的交易信息变动，并写入leader的日志
-    void ReceiveClientChange();
+    void ReceiveClientChange(string send, string receive, double amount);
 
     // 向follower发送心跳包
     void SendAppendEntries();
 
     // 当大多数节点收到变动信息后，leader反馈给客户端
-    void CommitEntry();
+    bool CommitEntry(int entry);
 
 private:
     // 记录当前leader的任期号
