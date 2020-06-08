@@ -70,14 +70,22 @@ public:
 private:
     // 记录当前leader的任期号
     int term_;
+
     // 定义选举超时时间，初始化时生成一个100-300ms随机时间
     int election_timeout_;
+
     // 定义心跳超时时间，仅在Leader身份时使用
     int heartbeat_timeout_;
+
+    // 定义是否收到心跳包的标志
+    int heartbeat_msg;
+
     // 记录自己的数组下标
     int self_number;
+
     // 记录当前Leader的编号
     int current_leader;
+
     // 判断节点是否超时
     bool IsTimeOut();
 };
