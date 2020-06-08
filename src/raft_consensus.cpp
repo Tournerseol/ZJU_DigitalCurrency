@@ -94,22 +94,22 @@ void ServerNode::ReplicateLog(ServerNode &L)
 // ---------------LEADER---------------
 void ServerNode::ReceiveClientChange(string send, string receive, double amount)
 {
-	Log.Write(send + " " + receive + " " + to_string(amount));
+    Log.Write(send + " " + receive + " " + to_string(amount));
 }
 
 void ServerNode::SendAppendEntries()
 {
-	for (i = 0; i < sizeof(nodes) / sizeof(nodes[0]); i++) {
-		if (nodes[i].identity == FOLLOWER) {
-			//向nodes[i]发送心跳包
-		}
+    for (i = 0; i < sizeof(nodes) / sizeof(nodes[0]); i++) {
+	if (nodes[i].identity == FOLLOWER) {
+		//向nodes[i]发送心跳包
 	}
+    }
 }
 
 bool ServerNode::CommitEntry(int entry)
 {
-	int n = sizeof(nodes) / sizeof(nodes[0]);
-	int majority_size = n % 2 ? n / 2 + 1: n / 2;
-	if (entry >= majority_size)	return true;
-	else  return false;
+    int n = sizeof(nodes) / sizeof(nodes[0]);
+    int majority_size = n % 2 ? n / 2 + 1: n / 2;
+    if (entry >= majority_size)	return true;
+    else  return false;
 }
