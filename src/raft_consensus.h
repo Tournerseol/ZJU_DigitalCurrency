@@ -74,6 +74,8 @@ private:
     int election_timeout_;
     // 定义心跳超时时间，仅在Leader身份时使用
     int heartbeat_timeout_;
+    // 记录自己的数组下标
+    int self_number;
     // 记录当前Leader的编号
     int current_leader;
     // 判断节点是否超时
