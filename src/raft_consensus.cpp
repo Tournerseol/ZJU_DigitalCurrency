@@ -24,9 +24,9 @@ void Checklog();//比较日志消息新旧
 
 int ServerNode::TransToCandidate()
 {
-    if (HeartBeatMsg){//时限内未收到heartbeat转变为candidate
+    if (heartbeat_msg){//时限内未收到heartbeat转变为candidate
         status=CANDIDATE;
-        HeartBeatMsg=0;//刷新
+        heartbeat_msg=0;//刷新
         //term_++
         
         return 1;
@@ -69,7 +69,7 @@ int ServerNode::ReceiveAppenEntries(ServerNode &L)
     	//确认leader已经发送心跳包 
     	
         election_timeout_=rand()%200+100;//更新election_timeout_
-        HeartBeatMsg=1;//表示收到
+        heartbeat_msg=1;//表示收到
         
         return 1;
         
@@ -84,7 +84,7 @@ int ServerNode::ReceiveAppenEntries(ServerNode &L)
 
 void ServerNode::ReplicateLog(ServerNode &L)
 {
-    if(HeartBeatMsg && L.ReturnIdentity()==LEADER){
+    if(heartbeat_msg && L.ReturnIdentity()==LEADER){
         //写入日志
         //Log.data = L.Log.data
     }
