@@ -91,6 +91,21 @@ void ServerNode::ReplicateLog(ServerNode &L)
 }
 
 
+// ---------------CANDIDATE---------------
+void ServerNode::SendVoteRequest()
+{
+
+}
+
+void ServerNode::TransToLeader()
+{
+	// 需要先生成一个投票助手实例，假设这个实例叫vote_assistant
+	// if (vote_assistant.ElectionResult() == this->self_number) {
+    //     this->identity_ = LEADER;
+	//     this->heartbeat_timeout_ = rand%200();
+	// }
+}
+
 // ---------------LEADER---------------
 void ServerNode::ReceiveClientChange(string send, string receive, double amount)
 {
@@ -99,10 +114,10 @@ void ServerNode::ReceiveClientChange(string send, string receive, double amount)
 
 void ServerNode::SendAppendEntries()
 {
-    for (i = 0; i < sizeof(nodes) / sizeof(nodes[0]); i++) {
-	if (nodes[i].identity == FOLLOWER) {
-		//向nodes[i]发送心跳包
-	}
+    for (int i = 0; i < sizeof(nodes) / sizeof(nodes[0]); i++) {
+        if (nodes[i].identity == FOLLOWER) {
+            //向nodes[i]发送心跳包
+        }
     }
 }
 
