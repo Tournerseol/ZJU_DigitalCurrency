@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <ctime>
 #include <dirent.h>
@@ -33,7 +34,7 @@ int ServerNode::ReturnIdentity()
 int ServerNode::TransToCandidate()
 {
     if (heartbeat_msg){//时限内未收到heartbeat转变为candidate
-        status=CANDIDATE;
+        this->ID=CANDIDATE;
         heartbeat_msg=0;//刷新
         //term_++
         
@@ -118,7 +119,7 @@ void ServerNode::TransToLeader()
 // ---------------LEADER---------------
 void ServerNode::ReceiveClientChange(string send, string receive, double amount)
 {
-    Log.Write(send + " " + receive + " " + to_string(amount));
+    Log::Write(send + " " + receive + " " + to_string(amount));
 }
 
 void ServerNode::SendAppendEntries()
