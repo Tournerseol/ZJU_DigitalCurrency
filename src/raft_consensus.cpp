@@ -129,7 +129,7 @@ void ServerNode::ReceiveClientChange(string send, string receive, double amount)
 void ServerNode::SendAppendEntries()
 {
 	while (1){
-		Sleep(HeartbeatTimeout);
+		Sleep(heartbeat_timeout_;);
 		for (int i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
 			if (s[i].ID == FOLLOWER) {
 				s[i].heartbeat_msg = 1;
