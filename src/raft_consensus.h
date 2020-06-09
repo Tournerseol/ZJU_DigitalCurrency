@@ -31,7 +31,7 @@ public:
     int ReturnIdentity();
     
     //返回当前任期
-	int ReturnTerm(); 
+    int ReturnTerm(); 
 
     // ---------------follower功能---------------
     //（在所有特有功能执行前，可以先验证一下身份判断是否有操作
