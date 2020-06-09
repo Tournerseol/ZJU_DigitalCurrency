@@ -6,8 +6,16 @@
 #include "raft_consensus.h"
 using namespace std;
 
+VoteAssistant vote_assistant;
+
 static int IsElected[identify,term_];//记录每个成员在当前领导人任期号下是否投过票 
 void Checklog();//比较日志消息新旧 
+
+// 返回节点的当前身份
+int ServerNode::ReturnIdentity()
+{
+    return this->ID;
+}
 
 // ---------------FOLLOWER---------------
 
@@ -63,7 +71,7 @@ int ServerNode::RespondRequest(int identify,int candidate)
 	}
 }
 
-int ServerNode::ReceiveAppenEntries(ServerNode &L)
+int ServerNode::ReceiveAppendEntries(ServerNode &L)
 {
     if(L.ReturnIdentity()==LEADER && L.SendAppendEntries()==1){
     	//确认leader已经发送心跳包 
@@ -99,11 +107,12 @@ void ServerNode::SendVoteRequest()
 
 void ServerNode::TransToLeader()
 {
-	// 需要先生成一个投票助手实例，假设这个实例叫vote_assistant
-	// if (vote_assistant.ElectionResult() == this->self_number) {
-    //     this->identity_ = LEADER;
-	//     this->heartbeat_timeout_ = rand%200();
-	// }
+    // 如果选举结果所返回的新leader的下标等于自身的下标，则变为leader
+	if (vote_assistant.ElectionResult() == this->self_number) {
+        this->ID = LEADER;
+        // 更新自己的心跳超时时间
+	    this->heartbeat_timeout_ = rand()%200;
+	}
 }
 
 // ---------------LEADER---------------
