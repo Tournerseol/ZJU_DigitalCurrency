@@ -23,7 +23,7 @@ void SendAppendEntries()
 		Sleep(HeartbeatTimeout);
 		for (i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
 			if (s[i].identity == FOLLOWER) {
-				s[i].HeartbeatMsg = 1;
+				s[i].heartbeat_msg = 1;
 			}
 		}
 	}
