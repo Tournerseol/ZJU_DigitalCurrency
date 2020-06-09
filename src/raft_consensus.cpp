@@ -19,6 +19,12 @@ int ServerNode::ReturnIdentity()
     return this->ID;
 }
 
+//返回节点所处的任期
+int ServerNode::ReturnTerm()
+{
+    return this->term_;
+}
+
 // ---------------FOLLOWER---------------
 
 //在class ServerNode添加变量 
