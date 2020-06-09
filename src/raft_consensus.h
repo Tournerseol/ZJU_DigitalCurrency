@@ -50,6 +50,9 @@ public:
 
     // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
     void ReplicateLog(ServerNode &L);
+	
+    //更新heartbeat_msg	
+    void ResetMsg()
 
     // ---------------candidate功能---------------
 
