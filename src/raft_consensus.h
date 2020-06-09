@@ -24,30 +24,34 @@ public:
         CANDIDATE,
         LEADER
     };
-    // ------------共有功能------------
+    identity_ ID;
+    // ---------------共有功能---------------
 
     // 返回节点当前的身份，0代表Follower这样以此类推
     int ReturnIdentity();
+    
+    //返回当前任期
+	int ReturnTerm(); 
 
-    // ------------follower功能------------
+    // ---------------follower功能---------------
     //（在所有特有功能执行前，可以先验证一下身份判断是否有操作
     // 权限）
 
     // 当节点超时，或没有收到心跳包时，转变身份为candidate
-    void TransToCandidate();
+    int TransToCandidate();
 
     // 接收candidate发来的投票请求并决定赞成还是反对，若赞成
     // 则要更新election timeout
     // 投票的结果由投票助手记录
-    void RespondRequest();
+    int RespondRequest(int identify,int candidate);
 
     // 接收leader发来的心跳包，接收到后更新election timeout
-    void ReceiveAppenEntries();
+    int ReceiveAppendEntries(ServerNode &L);
 
     // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
-    void ReplicateLog();
+    void ReplicateLog(ServerNode &L);
 
-    // ------------candidate功能------------
+    // ---------------candidate功能---------------
 
     // 向其他节点发送投票请求（记得在最后更新timeout！）
     void SendVoteRequest();
@@ -56,26 +60,39 @@ public:
     // 份为leader
     void TransToLeader();
 
-    // ------------leader功能------------
+    // ---------------leader功能---------------
 
     // 接收客户端发来的交易信息变动，并写入leader的日志
-    void ReceiveClientChange();
+    void ReceiveClientChange(string send, string receive, double amount);
 
     // 向follower发送心跳包
     void SendAppendEntries();
 
     // 当大多数节点收到变动信息后，leader反馈给客户端
-    void CommitEntry();
+    bool CommitEntry(int entry);
 
 private:
     // 记录当前leader的任期号
     int term_;
+
     // 定义选举超时时间，初始化时生成一个100-300ms随机时间
     int election_timeout_;
+
     // 定义心跳超时时间，仅在Leader身份时使用
     int heartbeat_timeout_;
+
+    // 定义是否收到心跳包的标志
+    int heartbeat_msg;
+    
+    //定义是否在当前任期进行投票(仅follower使用) 
+	int isElected;
+
+    // 记录自己的数组下标
+    int self_number;
+
     // 记录当前Leader的编号
     int current_leader;
+
     // 判断节点是否超时
     bool IsTimeOut();
 };
@@ -87,20 +104,20 @@ private:
 class Log
 {
 public:
-    static void Write(std::string log)
+    static void Write(string log)
     {
         try
         {
-            std::ofstream ofs;
+            ofstream ofs;
             time_t t = time(0);
             char tmp[64];
             strftime(tmp, sizeof(tmp), "[%Y-%m-%d %X]", localtime(&t));
             // 具体打开什么文件之后还得再改
-            ofs.open("D:\\PipeLog.log", std::ofstream::app);
+            ofs.open("D:\\PipeLog.log", ofstream::app);
 
             ofs << tmp << " - ";
             ofs.write(log.c_str(), log.size());
-            ofs << std::endl;
+            ofs << endl;
             ofs.close();
         }
         catch(...)
