@@ -24,6 +24,7 @@ public:
         CANDIDATE,
         LEADER
     };
+    identity_ ID;
     // ---------------共有功能---------------
 
     // 返回节点当前的身份，0代表Follower这样以此类推
@@ -42,7 +43,7 @@ public:
     int RespondRequest(int identify,int candidate);
 
     // 接收leader发来的心跳包，接收到后更新election timeout
-    int ReceiveAppenEntries(ServerNode &L);
+    int ReceiveAppendEntries(ServerNode &L);
 
     // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
     void ReplicateLog(ServerNode &L);
@@ -97,20 +98,20 @@ private:
 class Log
 {
 public:
-    static void Write(std::string log)
+    static void Write(string log)
     {
         try
         {
-            std::ofstream ofs;
+            ofstream ofs;
             time_t t = time(0);
             char tmp[64];
             strftime(tmp, sizeof(tmp), "[%Y-%m-%d %X]", localtime(&t));
             // 具体打开什么文件之后还得再改
-            ofs.open("D:\\PipeLog.log", std::ofstream::app);
+            ofs.open("D:\\PipeLog.log", ofstream::app);
 
             ofs << tmp << " - ";
             ofs.write(log.c_str(), log.size());
-            ofs << std::endl;
+            ofs << endl;
             ofs.close();
         }
         catch(...)
