@@ -3,7 +3,7 @@
 #include <fstream>
 #include <ctime>
 #include <dirent.h>
-// #include <windows.h>
+#include <windows.h>
 #include "election.h"
 #include "raft_consensus.h"
 using namespace std;
