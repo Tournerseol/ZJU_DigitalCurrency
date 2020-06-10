@@ -29,6 +29,9 @@ public:
 
     // 返回节点当前的身份，0代表Follower这样以此类推
     int ReturnIdentity();
+    
+    //返回当前任期
+    int ReturnTerm(); 
 
     // ---------------follower功能---------------
     //（在所有特有功能执行前，可以先验证一下身份判断是否有操作
@@ -47,6 +50,9 @@ public:
 
     // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
     void ReplicateLog(ServerNode &L);
+	
+    //更新heartbeat_msg	
+    void ResetMsg()
 
     // ---------------candidate功能---------------
 
@@ -80,6 +86,9 @@ private:
 
     // 定义是否收到心跳包的标志
     int heartbeat_msg;
+
+    //定义是否在当前任期进行投票(仅follower使用) 
+	  int isElected;
 
     // 记录自己的数组下标
     int self_number;

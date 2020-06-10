@@ -10,7 +10,8 @@ using namespace std;
 
 VoteAssistant vote_assistant;
 
-static int IsElected[identify,term_];//记录每个成员在当前领导人任期号下是否投过票 
+
+//static int IsElected[identify,term_];//记录每个成员在当前领导人任期号下是否投过票 
 void Checklog();//比较日志消息新旧 
 
 // 返回节点的当前身份
@@ -18,6 +19,13 @@ int ServerNode::ReturnIdentity()
 {
     return this->ID;
 }
+
+//返回节点所处的任期
+int ServerNode::ReturnTerm()
+{
+    return this->term_;
+}
+
 
 // ---------------FOLLOWER---------------
 
@@ -37,8 +45,6 @@ int ServerNode::TransToCandidate()
     if (heartbeat_msg){//时限内未收到heartbeat转变为candidate
         this->ID=CANDIDATE;
         heartbeat_msg=0;//刷新
-        //term_++
-        
         return 1;
     }
     
@@ -47,39 +53,35 @@ int ServerNode::TransToCandidate()
 	}
 }
 
-int ServerNode::RespondRequest(int identify,int candidate)
-{   
-    // 供VoteAssistant调用 
-	if(identify->term_<candidate->term_){
+
+int ServerNode::RespondRequest(ServerNode &L, ServerNode &C)
+{
+	if(L.ReturnTerm()<C.ReturnTerm()){
+		return 1;
 		
-		return 1;          //如果当前领导人任期号小于发送邀请的候选人相应的任期号 
-		
-	}                      //说明该成员已经过时，转变为该候选人的follower 
-	else if(identify->term_==candidate->term_){
-		
-		if(IsElected[identify,identify->term_]==0&&Checklog()==1){
-			//update election_timeout_；更新election timeout 
-			
-			IsElected[identify,identify->term_]==1;
-			
-			return 1;//如果当前领导人任期号等于发送邀请的候选人相应的任期号,并且对方日志消息不比本地日志旧 
-		}            // 如果该成员在该任期号下没有投过票就投给该候选人 
+	}	
+	
+	else if(L.ReturnTerm() == C.ReturnTerm()){
+		if(isElected == 0 && Checklog()==1){
+			election_timeout_=rand()%200+100;
+			isElected=1;
+			return 1;
+		}
 		else
-			return 0;//已经投过票就不再投		
+			return 0; 
 	}
 	else{
-		
-		return 0;//如果候选人任期号更小，则该候选人已经过时，不给他投票 
+		return 0;
 	}
-}
+} 
 
 int ServerNode::ReceiveAppendEntries(ServerNode &L)
 {
-    if(L.ReturnIdentity()==LEADER && L.SendAppendEntries()==1){
+    if(L.ReturnIdentity()==LEADER && heartbeat_msg){
     	//确认leader已经发送心跳包 
     	
         election_timeout_=rand()%200+100;//更新election_timeout_
-        heartbeat_msg=1;//表示收到
+
         
         return 1;
         
@@ -100,6 +102,15 @@ void ServerNode::ReplicateLog(ServerNode &L)
     }
 }
 
+
+void ServerNode::ResetMsg() {
+	//身份为follower且heartbeat_msg=1的节点需调用该函数刷新 
+    while(this->ReturnIdentity()==FOLLOWER)
+    {
+        Sleep(election_timeout_+50);
+        heartbeat_msg=0;
+    }
+}
 
 // ---------------CANDIDATE---------------
 void ServerNode::SendVoteRequest()
