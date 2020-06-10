@@ -86,9 +86,9 @@ private:
 
     // 定义是否收到心跳包的标志
     int heartbeat_msg;
-    
+
     //定义是否在当前任期进行投票(仅follower使用) 
-	int isElected;
+	  int isElected;
 
     // 记录自己的数组下标
     int self_number;

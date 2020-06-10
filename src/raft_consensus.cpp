@@ -10,6 +10,7 @@ using namespace std;
 
 VoteAssistant vote_assistant;
 
+
 //static int IsElected[identify,term_];//记录每个成员在当前领导人任期号下是否投过票 
 void Checklog();//比较日志消息新旧 
 
@@ -24,6 +25,7 @@ int ServerNode::ReturnTerm()
 {
     return this->term_;
 }
+
 
 // ---------------FOLLOWER---------------
 
@@ -43,8 +45,6 @@ int ServerNode::TransToCandidate()
     if (heartbeat_msg){//时限内未收到heartbeat转变为candidate
         this->ID=CANDIDATE;
         heartbeat_msg=0;//刷新
-        //term_++;
-        //isElected=0;
         return 1;
     }
     
@@ -52,6 +52,7 @@ int ServerNode::TransToCandidate()
     	return 0;
 	}
 }
+
 
 int ServerNode::RespondRequest(ServerNode &L, ServerNode &C)
 {
@@ -80,6 +81,7 @@ int ServerNode::ReceiveAppendEntries(ServerNode &L)
     	//确认leader已经发送心跳包 
     	
         election_timeout_=rand()%200+100;//更新election_timeout_
+
         
         return 1;
         
@@ -99,6 +101,7 @@ void ServerNode::ReplicateLog(ServerNode &L)
         //Log.data = L.Log.data
     }
 }
+
 
 void ServerNode::ResetMsg() {
 	//身份为follower且heartbeat_msg=1的节点需调用该函数刷新 
