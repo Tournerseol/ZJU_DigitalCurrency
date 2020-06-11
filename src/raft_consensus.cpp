@@ -2,9 +2,10 @@
 #include <string>
 #include <fstream>
 #include <ctime>
-// #include <windows.h>
+#include <windows.h>
 #include "election.h"
 #include "raft_consensus.h"
+#include "wallet.h"
 using namespace std;
 
 VoteAssistant vote_assistant;
