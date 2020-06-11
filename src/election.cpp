@@ -1,16 +1,13 @@
 #include <iostream>
 #include "raft_consensus.h"
 #include "election.h"
+#include "wallet.h"
+#include "main.cpp"
 using namespace std;
-
-bool VoteAssistant::RegisterVote()
-{
-
-}
 
 bool VoteAssistant::AreAllVotesIn()
 {
-    if (yes_votes + no_votes == num_voters) {
+    if (this->CountYesVotes() + this->CountNoVotes() == num_voters) {
         return true;
     } else {
         return false;
@@ -27,24 +24,53 @@ bool VoteAssistant::IsDecided()
     }
 }
 
+int VoteAssistant::CountYesVotes()
+{
+    int n = GetNumberOfNode();
+    int candidate = this->current_candidate;
+    int count = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (s[i].ID == ServerNode::FOLLOWER) {
+            if (s[i].RespondRequest(s[i], s[candidate]) == 1)
+                count++;
+        }
+    }
+
+    return count;
+}
+
+int VoteAssistant::CountNoVotes()
+{
+    int n = GetNumberOfNode();
+    int candidate = this->current_candidate;
+    int count = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (s[i].ID == ServerNode::FOLLOWER) {
+            if (s[i].RespondRequest(s[i], s[candidate]) == 0)
+                count++;
+        }
+    }
+
+    return count; 
+}
+
 int VoteAssistant::GetTotalVotesCounted()
 {
-    return yes_votes + no_votes;
+    return this->CountYesVotes() + this->CountNoVotes();
 }
 
 int VoteAssistant::GetTotalExpectedVotes()
 {
-    // **这个功能目前无法具体实现，需要一个统计有多少节点（账户）
-    // 的函数，现假设这个函数的名字叫做GetNumberOfNode
-
-    // return GetNumberOfNode() - 1;
+    return GetNumberOfNode() - 1;
 }
 
 int VoteAssistant::ElectionResult()
 {
     // 返回值，记录新leader的下标
     int new_leader;
-    if (yes_votes >= majority_size) {
+    if (this->CountYesVotes() >= majority_size) {
         new_leader = current_candidate;
     } else {
         // 表示竞选失败
