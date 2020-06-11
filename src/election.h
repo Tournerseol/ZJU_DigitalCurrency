@@ -13,24 +13,24 @@ private:
     // 大多数得票的票数，比如有5个人参与投票，则majority_size = 3
     int majority_size;
 
-    // 赞成票数
-    int yes_votes;
-
-    // 反对票数
-    int no_votes;
-
 public:
+    // 记录目前的参选者的节点下标
+    int current_candidate;
+
     // 所有投票者中的最高任期号
     int highest_voter_term;
-
-    // 注册投票
-    bool RegisterVote();
 
     // 判断选举结果是否已经决定
     bool IsDecided();
 
     // 判断是否所有人都参与投票
     bool AreAllVotesIn();
+
+    // 计赞成票数
+    int CountYesVotes();
+
+    // 计反对票数
+    int CountNoVotes();
 
     // 返回赞成票和反对票的票数
     int GetTotalVotesCounted();
