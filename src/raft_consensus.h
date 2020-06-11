@@ -2,7 +2,6 @@
 #include <fstream>
 #include <ctime>
 #include "election.h"
-#include "wallet.h"
 using namespace std;
 
 // 一些声明：
