@@ -2,16 +2,13 @@
 #include <string>
 #include <fstream>
 #include <ctime>
-#include <dirent.h>
-#include <windows.h>
+// #include <windows.h>
 #include "election.h"
 #include "raft_consensus.h"
 using namespace std;
 
 VoteAssistant vote_assistant;
 
-
-//static int IsElected[identify,term_];//记录每个成员在当前领导人任期号下是否投过票 
 void Checklog();//比较日志消息新旧 
 
 // 返回节点的当前身份
@@ -26,25 +23,15 @@ int ServerNode::ReturnTerm()
     return this->term_;
 }
 
-
 // ---------------FOLLOWER---------------
-
-//在class ServerNode添加变量 
-//public:
-//    int ReturnNumber();
-//    ServerNode();//默认构造函数
-//    ServerNode(const ServerNode&);//默认拷贝构造函数 
-//private:
-//    int status;
-//    int number;
- //   int HeartBeatMsg; //为1代表收到leader信号
-//	  raft_entry Log;   //raft_entry类 存储日志信息 
 
 int ServerNode::TransToCandidate()
 {
     if (heartbeat_msg){//时限内未收到heartbeat转变为candidate
         this->ID=CANDIDATE;
         heartbeat_msg=0;//刷新
+        //term_++
+        
         return 1;
     }
     
@@ -52,7 +39,6 @@ int ServerNode::TransToCandidate()
     	return 0;
 	}
 }
-
 
 int ServerNode::RespondRequest(ServerNode &L, ServerNode &C)
 {
@@ -77,14 +63,14 @@ int ServerNode::RespondRequest(ServerNode &L, ServerNode &C)
 
 int ServerNode::ReceiveAppendEntries(ServerNode &L)
 {
-    if(L.ReturnIdentity()==LEADER && heartbeat_msg){
+    if(L.ReturnIdentity()==LEADER && L.SendAppendEntries()==1){
     	//确认leader已经发送心跳包 
     	
         election_timeout_=rand()%200+100;//更新election_timeout_
-
+        heartbeat_msg=1;//表示收到
         
         return 1;
-        
+       
     }
     else{
     	
@@ -102,20 +88,25 @@ void ServerNode::ReplicateLog(ServerNode &L)
     }
 }
 
-
 void ServerNode::ResetMsg() {
 	//身份为follower且heartbeat_msg=1的节点需调用该函数刷新 
-    while(this->ReturnIdentity()==FOLLOWER)
+    while(this->ID==FOLLOWER)
     {
-        Sleep(election_timeout_+50);
+        Sleep(heartbeat_timeout_+50);
         heartbeat_msg=0;
     }
 }
 
+
 // ---------------CANDIDATE---------------
 void ServerNode::SendVoteRequest()
 {
-
+    int n; // n为目前节点个数
+	for (int i = 0; i < n; i++) {
+		if (i != this->self_number) {
+			s[i].vote_request_msg = 1;
+		}
+	}
 }
 
 void ServerNode::TransToLeader()
@@ -125,6 +116,10 @@ void ServerNode::TransToLeader()
         this->ID = LEADER;
         // 更新自己的心跳超时时间
 	    this->heartbeat_timeout_ = rand()%200;
+
+		for (int i = 0; i < n; i++) {
+			s[i].current_leader = this->self_number;
+		}
 	}
 }
 
@@ -140,7 +135,7 @@ void ServerNode::ReceiveClientChange(string send, string receive, double amount)
 void ServerNode::SendAppendEntries()
 {
 	while (1){
-		Sleep(heartbeat_timeout_;);
+		Sleep(heartbeat_timeout_);
 		for (int i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
 			if (s[i].ID == FOLLOWER) {
 				s[i].heartbeat_msg = 1;
