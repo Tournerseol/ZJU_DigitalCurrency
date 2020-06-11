@@ -1,155 +1,135 @@
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <ctime>
-#include <windows.h>
 #include "election.h"
-#include "raft_consensus.h"
-#include "wallet.h"
 using namespace std;
 
-VoteAssistant vote_assistant;
+// 一些声明：
+// (1) 因为函数的具体实现还没有确定，所以传参和返回类型我都没有规
+// 定好，需要自己再加工
+// (2) 有些变量后面加了下划线的原因是，初始化节点的时候结构函数传
+// 参可能会用到一模一样的名字，加下划线是一个通用的解决方法
+#ifndef RAFT_CONSENSUS_H_
+#define RAFT_CONSENSUS_H_
 
-void Checklog();//比较日志消息新旧 
-
-// 返回节点的当前身份
-int ServerNode::ReturnIdentity()
+class ServerNode
 {
-    return this->ID;
-}
-
-//返回节点所处的任期
-int ServerNode::ReturnTerm()
-{
-    return this->term_;
-}
-
-// ---------------FOLLOWER---------------
-
-int ServerNode::TransToCandidate()
-{
-    if (heartbeat_msg){//时限内未收到heartbeat转变为candidate
-        this->ID=CANDIDATE;
-        heartbeat_msg=0;//刷新
-        //term_++
-        
-        return 1;
-    }
-    
-    else{
-    	return 0;
-	}
-}
-
-int ServerNode::RespondRequest(ServerNode &L, ServerNode &C)
-{
-	if(L.ReturnTerm()<C.ReturnTerm()){
-		return 1;
-		
-	}	
-	
-	else if(L.ReturnTerm() == C.ReturnTerm()){
-		if(isElected == 0 && Checklog()==1){
-			election_timeout_=rand()%200+100;
-			isElected=1;
-			return 1;
-		}
-		else
-			return 0; 
-	}
-	else{
-		return 0;
-	}
-} 
-
-int ServerNode::ReceiveAppendEntries(ServerNode &L)
-{
-    if(L.ReturnIdentity()==LEADER && L.SendAppendEntries()==1){
-    	//确认leader已经发送心跳包 
-    	
-        election_timeout_=rand()%200+100;//更新election_timeout_
-        heartbeat_msg=1;//表示收到
-        
-        return 1;
-       
-    }
-    else{
-    	
-        return 0;
-        
-    }
-    
-}
-
-void ServerNode::ReplicateLog(ServerNode &L)
-{
-    if(heartbeat_msg && L.ReturnIdentity()==LEADER){
-        //写入日志
-        //Log.data = L.Log.data
-    }
-}
-
-void ServerNode::ResetMsg() {
-	//身份为follower且heartbeat_msg=1的节点需调用该函数刷新 
-    while(this->ID==FOLLOWER)
+public:
+    // 枚举身份类型，FOLLOWER=0, CANDIDATE=1, LEADER=2
+    // 初始时刻所有节点默认为FOLLOWER身份
+    enum identity_
     {
-        Sleep(heartbeat_timeout_+50);
-        heartbeat_msg=0;
+        FOLLOWER,
+        CANDIDATE,
+        LEADER
+    };
+    identity_ ID;
+
+    // 记录当前Leader的编号(数组下标)
+    int current_leader;
+
+    //定义是否在当前任期进行投票(仅follower使用) 
+	int isElected;
+
+    // 定义是否收到投票请求的标志
+    int vote_request_msg;
+
+    // 定义是否收到心跳包的标志
+    int heartbeat_msg;
+
+    // 记录当前leader的任期号
+    int term_;
+
+    // 定义选举超时时间，初始化时生成一个100-300ms随机时间
+    int election_timeout_;
+
+    // 定义心跳超时时间，仅在Leader身份时使用
+    int heartbeat_timeout_;
+
+    // 记录自己的数组下标
+    int self_number;
+
+    // ---------------共有功能---------------
+
+    // 返回节点当前的身份，0代表Follower这样以此类推
+    int ReturnIdentity();
+
+    // ---------------follower功能---------------
+    //（在所有特有功能执行前，可以先验证一下身份判断是否有操作
+    // 权限）
+
+    // 当节点超时，或没有收到心跳包时，转变身份为candidate
+    int TransToCandidate();
+
+    // 接收candidate发来的投票请求并决定赞成还是反对，若赞成
+    // 则要更新election timeout
+    // 投票的结果由投票助手记录
+    int RespondRequest(ServerNode &L, ServerNode &C);
+
+    // 接收leader发来的心跳包，接收到后更新election timeout
+    int ReceiveAppendEntries(ServerNode &L);
+
+    // 当收到leader发来的带有交易变动信息的心跳包后，更新日志
+    void ReplicateLog(ServerNode &L);
+
+    int ReturnTerm();
+
+    //更新heartbeat_msg	
+    void ResetMsg();
+
+    // ---------------candidate功能---------------
+
+    // 向其他节点发送投票请求（记得在最后更新timeout！）
+    void SendVoteRequest();
+
+    // 收到大多数投票时（是否竞选成功由投票助手告知），转变身
+    // 份为leader
+    void TransToLeader();
+
+    // ---------------leader功能---------------
+
+    // 接收客户端发来的交易信息变动，并写入leader的日志
+    void ReceiveClientChange(string send, string receive, double amount);
+
+    // 向follower发送心跳包
+    void SendAppendEntries();
+
+    // 当大多数节点收到变动信息后，leader反馈给客户端
+    bool CommitEntry(int entry);
+
+    // 判断节点是否超时
+    bool IsTimeOut();
+};
+
+// 这个类是用来作为日志的，目前有一个写日志的函数，参考的是
+// https://www.cnblogs.com/zhhh/p/9470255.html
+// 可能后续还需要添加一些别的功能。初步的设想是在创建一个服务器
+// 节点的同时创建一个Log类的实例对象
+class Log
+{
+public:
+    // 记录日志的下标
+    int log_index;
+
+    static void CreateLog()
+    {
+
     }
-}
 
+    static void Write(string log)
+    {
+        ofstream ofs;
+        time_t t = time(0);
+        char tmp[64];
+        strftime(tmp, sizeof(tmp), "[%Y-%m-%d %X]", localtime(&t));
+        // 具体打开什么文件之后还得再改
+        ofs.open("D:\\PipeLog.log", ofstream::app);
 
-// ---------------CANDIDATE---------------
-void ServerNode::SendVoteRequest()
-{
-    int n; // n为目前节点个数
-	for (int i = 0; i < n; i++) {
-		if (i != this->self_number) {
-			s[i].vote_request_msg = 1;
-		}
-	}
-}
+        ofs << tmp << " - ";
+        ofs.write(log.c_str(), log.size());
+        ofs << endl;
+        ofs.close();
+    }    
+};
 
-void ServerNode::TransToLeader()
-{
-    // 如果选举结果所返回的新leader的下标等于自身的下标，则变为leader
-	if (vote_assistant.ElectionResult() == this->self_number) {
-        this->ID = LEADER;
-        // 更新自己的心跳超时时间
-	    this->heartbeat_timeout_ = rand()%200;
-
-		for (int i = 0; i < n; i++) {
-			s[i].current_leader = this->self_number;
-		}
-	}
-}
-
-// ---------------leader功能---------------
-
-// 接收客户端发来的交易信息变动，并写入leader的日志
-void ServerNode::ReceiveClientChange(string send, string receive, double amount)
-{
-	Log::Write(send + " " + receive + " " + to_string(amount));
-}
-
-// 向follower发送心跳包
-void ServerNode::SendAppendEntries()
-{
-	while (1){
-		Sleep(heartbeat_timeout_);
-		for (int i = 0; i < sizeof(s) / sizeof(s[0]); i++) {
-			if (s[i].ID == FOLLOWER) {
-				s[i].heartbeat_msg = 1;
-			}
-		}
-	}
-}
-
-// 当大多数节点收到变动信息后，leader反馈给客户端
-bool ServerNode::CommitEntry(int entry)
-{
-	int n = sizeof(s) / sizeof(s[0]);
-	int majority_size = n % 2 ? n / 2 + 1: n / 2;
-	if (entry >= majority_size)	return true;
-	else  return false;
-}
+#endif
